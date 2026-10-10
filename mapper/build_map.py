@@ -9,6 +9,7 @@ Edges seen in only one view are interesting findings (config says yes, traffic s
 Run:     python mapper/build_map.py            (app must be running for the runtime view)
 Outputs: reports/dependency_map.json, reports/dependency_map.png
 """
+import os
 import json
 import re
 import subprocess
@@ -24,7 +25,8 @@ from draw_map import draw_map  # the picture is drawn in mapper/draw_map.py
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORTS = ROOT / "reports"
-DEMO_DIR = Path(r"C:\Users\ASUS\opentelemetry-demo")
+# Where the OTel Demo was cloned; override with the OTEL_DEMO_DIR environment variable.
+DEMO_DIR = Path(os.environ.get("OTEL_DEMO_DIR", Path.home() / "opentelemetry-demo"))
 COMPOSE_ARGS = ["--env-file", ".env", "--env-file", ".env.override",
                 "-f", "compose.yaml", "-f", "compose.full.yaml",
                 "-f", "compose.observability.yaml", "-f", "compose.extras.yaml"]

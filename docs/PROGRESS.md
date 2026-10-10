@@ -23,3 +23,8 @@
   `astronomy-db` OOMKilled=true (memory limit only 80 MB) → product-catalog requests returned 504 Gateway Timeout.
   Load generator itself at ~880% CPU / 99.7% memory (OOM flag) → 50 users is beyond what the load generator can drive.
   Finding: the #1 critical service on our map (astronomy-db) is the first to fail under a spike. Fix idea: raise DB memory limit / add connection pooling / cache product catalog.
+- **13:07 Confirmed from database logs:** at 12:30:35 one Postgres worker was killed by the out-of-memory killer
+  (`client backend (PID 106) was terminated by signal 9: Killed`). Postgres then reset ALL its connections and
+  ran crash recovery; 122 connection attempts were refused ("in recovery mode") until 12:30:37. The container
+  itself never restarted (RestartCount 0), so `docker ps` showed it "Up" the whole time — the failure was invisible
+  at the container level. At 15 users the DB still uses 60 of its 80 MB (75%).

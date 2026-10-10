@@ -1,0 +1,12 @@
+# Manual corrections to the dependency map (the hackathon rules allow manual corrections).
+# Pairs are [from, to] meaning "from depends on / calls to".
+add_edges: []
+remove_edges: []
+
+# Message queues. Traffic through a queue is ASYNCHRONOUS: the sender drops a message and moves on,
+# it does not wait for the reader. Consumers READ from the queue, so on the picture the arrow is drawn
+# in the direction data flows (queue -> consumer), while for impact counting the consumer still
+# depends on the queue.
+queues:
+  kafka:
+    consumers: [accounting, fraud-detection]   # checkout WRITES orders to kafka; these two read them

@@ -16,12 +16,11 @@ import sys
 import time
 from pathlib import Path
 
-import matplotlib
-matplotlib.use("Agg")  # draw to a file, no window needed
-import matplotlib.pyplot as plt
 import networkx as nx
 import requests
 import yaml
+
+from draw_map import draw_map  # the picture is drawn in mapper/draw_map.py
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORTS = ROOT / "reports"
@@ -75,23 +74,17 @@ def runtime_edges(lookback_minutes=15):
     return {(d["parent"], d["child"]): d.get("callCount", 0) for d in data if d["parent"] != d["child"]}
 
 
-def apply_overrides(graph):
-    """Manual corrections from config/map_overrides.yaml (add_edges / remove_edges as [from, to] pairs)."""
+def load_overrides():
+    """Manual corrections from config/map_overrides.yaml (see that file for the format)."""
     path = ROOT / "config" / "map_overrides.yaml"
-    if not path.exists():
-        return
-    o = yaml.safe_load(path.read_text()) or {}
-    for a, b in o.get("remove_edges") or []:
-        if graph.has_edge(a, b):
-            graph.remove_edge(a, b)
-    for a, b in o.get("add_edges") or []:
-        graph.add_edge(a, b, source="manual")
+    return (yaml.safe_load(path.read_text()) or {}) if path.exists() else {}
 
 
 def build():
     services = load_compose()
     static = static_edges(services)
     runtime = runtime_edges()
+    overrides = load_overrides()
 
     g = nx.DiGraph()
     for (a, b), kind in static.items():
@@ -108,66 +101,48 @@ def build():
             g[a][b].update(source="both", calls=calls)
         else:
             g.add_edge(a, b, source="runtime-only", calls=calls)
-    apply_overrides(g)
+    for a, b in overrides.get("remove_edges") or []:
+        if g.has_edge(a, b):
+            g.remove_edge(a, b)
+    for a, b in overrides.get("add_edges") or []:
+        g.add_edge(a, b, source="manual")
 
+    queues = overrides.get("queues") or {}
+    for a, b, d in g.edges(data=True):
+        # async = goes through a message queue; the sender does not wait for the reader.
+        d["async"] = a in queues or b in queues
+        # Readers depend on the queue, but data flows queue -> reader, so draw it that way round.
+        d["drawn_reversed"] = b in queues and a in (queues[b].get("consumers") or [])
+        # "Start B before A" (depends_on) without A actually calling B: keep in data, hide in picture.
+        d["hidden"] = d.get("source") == "static" and d.get("static_kind") == "startup-order"
+
+    # Real dependencies only (hidden start-up-order links don't make a service fail).
+    real = nx.DiGraph()
+    real.add_nodes_from(g.nodes)
+    real.add_edges_from((a, b) for a, b, d in g.edges(data=True) if not d["hidden"])
     # How many services break (directly or indirectly) if this one dies = everyone that can reach it.
-    impact = {n: sorted(nx.ancestors(g, n) - ENTRY) for n in g.nodes}
+    impact = {n: sorted(nx.ancestors(real, n) - ENTRY) for n in real.nodes}
     nodes = [{"name": n,
               "role": "entry" if n in ENTRY else ("datastore" if n in {"astronomy-db", "valkey-cart", "kafka"} else "service"),
-              "depends_on": sorted(g.successors(n)),
-              "depended_on_by": sorted(g.predecessors(n)),
+              "depends_on": sorted(real.successors(n)),
+              "depended_on_by": sorted(real.predecessors(n)),
               "impacted_if_down": impact[n],
               "impact_count": len(impact[n])}
-             for n in sorted(g.nodes)]
+             for n in sorted(real.nodes)]
     edges = [{"from": a, "to": b, **d} for a, b, d in g.edges(data=True)]
     result = {
         "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         "runtime_view_available": bool(runtime),
         "nodes": sorted(nodes, key=lambda n: -n["impact_count"]),
         "edges": edges,
-        "only_in_config": [e for e in edges if e["source"] == "static"] if runtime else [],
+        "only_in_config": [e for e in edges if e["source"] == "static" and not e["hidden"]] if runtime else [],
         "only_in_traffic": [e for e in edges if e["source"] == "runtime-only"],
         "excluded_support_services": sorted(SUPPORT),
     }
     REPORTS.mkdir(exist_ok=True)
     (REPORTS / "dependency_map.json").write_text(json.dumps(result, indent=2))
-    draw(g, impact, bool(runtime))
+    draw_map(result, REPORTS / "dependency_map.png")
     return result
-
-
-def draw(g, impact, have_runtime):
-    # Left-to-right layers: traffic enters on the left, databases end up on the right.
-    layer = {}
-    for n in nx.topological_sort(g) if nx.is_directed_acyclic_graph(g) else g.nodes:
-        preds = list(g.predecessors(n))
-        layer[n] = 0 if not preds else max(layer.get(p, 0) for p in preds) + 1
-    nx.set_node_attributes(g, layer, "layer")
-    pos = nx.multipartite_layout(g, subset_key="layer")
-
-    colors = {"both": "#2b8a3e", "static": "#868e96", "runtime-only": "#e8590c", "manual": "#7048e8"}
-    plt.figure(figsize=(16, 9))
-    for src, col in colors.items():
-        es = [(a, b) for a, b, d in g.edges(data=True) if d["source"] == src]
-        nx.draw_networkx_edges(g, pos, edgelist=es, edge_color=col, arrows=True, arrowsize=14,
-                               width=2 if src != "static" else 1.2, connectionstyle="arc3,rad=0.05",
-                               style="solid" if src != "static" else "dashed",
-                               min_source_margin=18, min_target_margin=18)
-    sizes = [700 + 260 * len(impact[n]) for n in g.nodes]  # bigger circle = more services hurt if it dies
-    fill = ["#a5d8ff" if n in ENTRY else "#ffd8a8" if n in {"astronomy-db", "valkey-cart", "kafka"}
-            else "#ffffff" for n in g.nodes]
-    nx.draw_networkx_nodes(g, pos, node_size=sizes, node_color=fill, edgecolors="#212529")
-    nx.draw_networkx_labels(g, pos, font_size=9)
-    legend = [plt.Line2D([], [], color=colors["both"], lw=2, label="in config AND seen in traffic"),
-              plt.Line2D([], [], color=colors["static"], lw=1.2, ls="--",
-                         label="in config only" + ("" if have_runtime else " (runtime view not yet captured)")),
-              plt.Line2D([], [], color=colors["runtime-only"], lw=2, label="seen in traffic only"),
-              plt.Line2D([], [], marker="o", ls="", markersize=10, markerfacecolor="#ffd8a8",
-                         markeredgecolor="#212529", label="data store / queue")]
-    plt.legend(handles=legend, loc="lower left", fontsize=9)
-    plt.title("Astronomy Shop dependency map — circle size = how many services are hurt if it fails")
-    plt.axis("off")
-    plt.tight_layout()
-    plt.savefig(REPORTS / "dependency_map.png", dpi=150)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,488 @@
+{
+  "generated_at": "2026-10-10 11:43:16",
+  "runtime_view_available": false,
+  "nodes": [
+    {
+      "name": "astronomy-db",
+      "role": "datastore",
+      "depends_on": [],
+      "depended_on_by": [
+        "accounting",
+        "product-catalog"
+      ],
+      "impacted_if_down": [
+        "accounting",
+        "checkout",
+        "frontend",
+        "product-catalog",
+        "recommendation"
+      ],
+      "impact_count": 5
+    },
+    {
+      "name": "kafka",
+      "role": "datastore",
+      "depends_on": [],
+      "depended_on_by": [
+        "accounting",
+        "checkout",
+        "fraud-detection"
+      ],
+      "impacted_if_down": [
+        "accounting",
+        "checkout",
+        "fraud-detection",
+        "frontend"
+      ],
+      "impact_count": 4
+    },
+    {
+      "name": "product-catalog",
+      "role": "service",
+      "depends_on": [
+        "astronomy-db"
+      ],
+      "depended_on_by": [
+        "checkout",
+        "frontend",
+        "recommendation"
+      ],
+      "impacted_if_down": [
+        "checkout",
+        "frontend",
+        "recommendation"
+      ],
+      "impact_count": 3
+    },
+    {
+      "name": "quote",
+      "role": "service",
+      "depends_on": [],
+      "depended_on_by": [
+        "frontend",
+        "shipping"
+      ],
+      "impacted_if_down": [
+        "checkout",
+        "frontend",
+        "shipping"
+      ],
+      "impact_count": 3
+    },
+    {
+      "name": "valkey-cart",
+      "role": "datastore",
+      "depends_on": [],
+      "depended_on_by": [
+        "cart"
+      ],
+      "impacted_if_down": [
+        "cart",
+        "checkout",
+        "frontend"
+      ],
+      "impact_count": 3
+    },
+    {
+      "name": "cart",
+      "role": "service",
+      "depends_on": [
+        "valkey-cart"
+      ],
+      "depended_on_by": [
+        "checkout",
+        "frontend"
+      ],
+      "impacted_if_down": [
+        "checkout",
+        "frontend"
+      ],
+      "impact_count": 2
+    },
+    {
+      "name": "currency",
+      "role": "service",
+      "depends_on": [],
+      "depended_on_by": [
+        "checkout",
+        "frontend"
+      ],
+      "impacted_if_down": [
+        "checkout",
+        "frontend"
+      ],
+      "impact_count": 2
+    },
+    {
+      "name": "email",
+      "role": "service",
+      "depends_on": [],
+      "depended_on_by": [
+        "checkout"
+      ],
+      "impacted_if_down": [
+        "checkout",
+        "frontend"
+      ],
+      "impact_count": 2
+    },
+    {
+      "name": "payment",
+      "role": "service",
+      "depends_on": [],
+      "depended_on_by": [
+        "checkout"
+      ],
+      "impacted_if_down": [
+        "checkout",
+        "frontend"
+      ],
+      "impact_count": 2
+    },
+    {
+      "name": "shipping",
+      "role": "service",
+      "depends_on": [
+        "quote"
+      ],
+      "depended_on_by": [
+        "checkout",
+        "frontend"
+      ],
+      "impacted_if_down": [
+        "checkout",
+        "frontend"
+      ],
+      "impact_count": 2
+    },
+    {
+      "name": "ad",
+      "role": "service",
+      "depends_on": [],
+      "depended_on_by": [
+        "frontend"
+      ],
+      "impacted_if_down": [
+        "frontend"
+      ],
+      "impact_count": 1
+    },
+    {
+      "name": "checkout",
+      "role": "service",
+      "depends_on": [
+        "cart",
+        "currency",
+        "email",
+        "kafka",
+        "payment",
+        "product-catalog",
+        "shipping"
+      ],
+      "depended_on_by": [
+        "frontend"
+      ],
+      "impacted_if_down": [
+        "frontend"
+      ],
+      "impact_count": 1
+    },
+    {
+      "name": "image-provider",
+      "role": "service",
+      "depends_on": [],
+      "depended_on_by": [
+        "frontend",
+        "frontend-proxy"
+      ],
+      "impacted_if_down": [
+        "frontend"
+      ],
+      "impact_count": 1
+    },
+    {
+      "name": "recommendation",
+      "role": "service",
+      "depends_on": [
+        "product-catalog"
+      ],
+      "depended_on_by": [
+        "frontend"
+      ],
+      "impacted_if_down": [
+        "frontend"
+      ],
+      "impact_count": 1
+    },
+    {
+      "name": "accounting",
+      "role": "service",
+      "depends_on": [
+        "astronomy-db",
+        "kafka"
+      ],
+      "depended_on_by": [],
+      "impacted_if_down": [],
+      "impact_count": 0
+    },
+    {
+      "name": "fraud-detection",
+      "role": "service",
+      "depends_on": [
+        "kafka"
+      ],
+      "depended_on_by": [],
+      "impacted_if_down": [],
+      "impact_count": 0
+    },
+    {
+      "name": "frontend",
+      "role": "service",
+      "depends_on": [
+        "ad",
+        "cart",
+        "checkout",
+        "currency",
+        "image-provider",
+        "product-catalog",
+        "quote",
+        "recommendation",
+        "shipping"
+      ],
+      "depended_on_by": [
+        "frontend-proxy",
+        "load-generator"
+      ],
+      "impacted_if_down": [],
+      "impact_count": 0
+    },
+    {
+      "name": "frontend-proxy",
+      "role": "entry",
+      "depends_on": [
+        "frontend",
+        "image-provider"
+      ],
+      "depended_on_by": [
+        "load-generator"
+      ],
+      "impacted_if_down": [],
+      "impact_count": 0
+    },
+    {
+      "name": "load-generator",
+      "role": "entry",
+      "depends_on": [
+        "frontend",
+        "frontend-proxy"
+      ],
+      "depended_on_by": [],
+      "impacted_if_down": [],
+      "impact_count": 0
+    }
+  ],
+  "edges": [
+    {
+      "from": "accounting",
+      "to": "kafka",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "accounting",
+      "to": "astronomy-db",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "cart",
+      "to": "valkey-cart",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "checkout",
+      "to": "payment",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "checkout",
+      "to": "shipping",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "checkout",
+      "to": "currency",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "checkout",
+      "to": "kafka",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "checkout",
+      "to": "product-catalog",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "checkout",
+      "to": "cart",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "checkout",
+      "to": "email",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "shipping",
+      "to": "quote",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "product-catalog",
+      "to": "astronomy-db",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "fraud-detection",
+      "to": "kafka",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "frontend",
+      "to": "shipping",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "frontend",
+      "to": "currency",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "frontend",
+      "to": "product-catalog",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "frontend",
+      "to": "checkout",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "frontend",
+      "to": "recommendation",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "frontend",
+      "to": "cart",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "frontend",
+      "to": "ad",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "frontend",
+      "to": "image-provider",
+      "source": "static",
+      "static_kind": "startup-order",
+      "calls": 0
+    },
+    {
+      "from": "frontend",
+      "to": "quote",
+      "source": "static",
+      "static_kind": "startup-order",
+      "calls": 0
+    },
+    {
+      "from": "recommendation",
+      "to": "product-catalog",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "frontend-proxy",
+      "to": "frontend",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "frontend-proxy",
+      "to": "image-provider",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "load-generator",
+      "to": "frontend-proxy",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0
+    },
+    {
+      "from": "load-generator",
+      "to": "frontend",
+      "source": "static",
+      "static_kind": "startup-order",
+      "calls": 0
+    }
+  ],
+  "only_in_config": [],
+  "only_in_traffic": [],
+  "excluded_support_services": [
+    "flagd",
+    "flagd-ui",
+    "grafana",
+    "jaeger",
+    "opamp-server",
+    "opensearch",
+    "otel-collector",
+    "prometheus",
+    "telemetry-docs"
+  ]
+}

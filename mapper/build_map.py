@@ -95,7 +95,9 @@ def build():
 
     g = nx.DiGraph()
     for (a, b), kind in static.items():
-        if a in SUPPORT or b in SUPPORT:
+        # Skip support tools, and arrows INTO traffic sources: the proxy only serves the
+        # load generator's web page — no shop feature depends on it (this also removes the only loop).
+        if a in SUPPORT or b in SUPPORT or b in ENTRY - {"frontend-proxy"}:
             continue
         g.add_edge(a, b, source="static", static_kind=kind, calls=0)
     for (a, b), calls in runtime.items():

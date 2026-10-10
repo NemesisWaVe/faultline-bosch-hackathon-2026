@@ -3,7 +3,7 @@
 | # | Item | Status | Time | Evidence |
 |---|------|--------|------|----------|
 | 1 | Setup & app selection — sample app running end to end | 🟡 in progress | 11:28 | OTel Demo v3.1.0 cloned to `C:\Users\ASUS\opentelemetry-demo` |
-| 2 | Application mapping — services, dependencies, data flows | ⬜ | | |
+| 2 | Application mapping — services, dependencies, data flows | 🟡 static view done | 11:44 | `reports/dependency_map.png`, `.json` (runtime view pending app start) |
 | 3 | Monitoring baseline — error rate, latency, health under load | ⬜ | | |
 | 4 | First failure injection — triggered and observed | ⬜ | | |
 | 5 | Safety controls — auto stop/rollback, tested at least once | ⬜ | | |

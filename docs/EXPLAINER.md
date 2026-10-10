@@ -81,3 +81,14 @@
 - **Say it like this:** "We crashed a small, optional service. We expected nobody to notice — instead one in five requests failed, so our referee stopped the test after 41 seconds by itself and the shop was back to normal 66 seconds later."
 - **Likely judge question + our answer:** "Why did the shop take 66 seconds to recover when the service restarted instantly?" — "The service was ready in under a second, but the frontend only started talking to it again 21 seconds later, then a second wave of slow, failing product pages hit 30–60 seconds after the restart. We haven't confirmed the cause yet; our best guess is that queued requests were all released at once and overloaded the product catalog. That's what we'd check next in the traces."
 - **Numbers to remember:** abort at +41 s (limit 90 s) · abort reason errors 9.1% > 5%, avg 1,745 ms > 1,034 ms · peak errors 20% · peak avg response 3.7 s · recovery 66 s · aftershock up to 50% errors / 9.7 s · 21 s silence before traffic returned.
+
+---
+## [2026-10-10 13:40] Published the repo "Faultline" with README + deploy steps — Submission requirement (repo link + deployment steps)
+
+### 🗣️ Explain it to the judges
+- **What we did (plain English):** We named the project Faultline and put the code on GitHub publicly, with an open-source license (MIT) and a README that explains, step by step, how anyone can start the shop and run our safety-controlled experiments on their own laptop. Before publishing we checked there were no passwords, keys or personal emails anywhere in the history.
+- **Why it matters:** The brief requires a public repo and deployment steps; a stranger being able to reproduce our results is what makes them trustworthy.
+- **Analogy:** Publishing a recipe with exact ingredients and steps, not just a photo of the cake.
+- **Say it like this:** "Everything is on GitHub under Faultline — clone two repos, run one command for the shop and three for our map, baseline and experiment."
+- **Likely judge question + our answer:** "Can I run this on my machine?" — "Yes: Docker Desktop and Python. The README has the exact commands; the only manual step we hit was building one image the demo didn't publish."
+- **Numbers to remember:** 1 repo · MIT license · 3 commands to map, measure and run an experiment · 28 containers in the target app.

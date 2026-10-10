@@ -25,6 +25,7 @@
 - **Prometheus / PromQL** — a database of system numbers over time / the query language to ask it questions.
 - **Recovery time** — how long the system takes to get back to normal after the failure is removed.
 - **Resilience** — a system's ability to keep working (maybe degraded) and bounce back when parts fail.
+- **Restart policy** — a rule telling Docker whether to start a container again automatically after it stops (ours: 'unless-stopped' = restart unless a person stopped it).
 - **Retry** — automatically trying a failed request again.
 - **Rolling average** — the average of the most recent few readings (here: the last 30 s), used to smooth out noisy single readings.
 - **Timeout** — a maximum wait time; after it, give up instead of hanging forever.

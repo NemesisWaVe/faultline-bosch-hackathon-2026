@@ -92,3 +92,40 @@
 - **Say it like this:** "Everything is on GitHub under Faultline — clone two repos, run one command for the shop and three for our map, baseline and experiment."
 - **Likely judge question + our answer:** "Can I run this on my machine?" — "Yes: Docker Desktop and Python. The README has the exact commands; the only manual step we hit was building one image the demo didn't publish."
 - **Numbers to remember:** 1 repo · MIT license · 3 commands to map, measure and run an experiment · 28 containers in the target app.
+
+---
+## [2026-10-10 13:45] Emergency stop fixed + demo script + correcting our own finding — Milestone items 5 + 6
+
+**This replaces the earlier explanation (12:24 / 12:30 entries) that "Docker does not self-heal after a crash", because new evidence showed `docker kill` counts as a deliberate stop; real crashes ARE auto-restarted.**
+
+### 🗣️ Explain it to the judges
+- **What we did (plain English):** We tested our emergency stop button before relying on it and found it would have run commands inside our own monitoring tools, so we restricted it to the services we're allowed to break; it now finishes in about 5 seconds. We wrote a 3-minute demo script with a fallback for everything that can go wrong. And we corrected one of our own findings when new evidence contradicted it.
+- **Why it matters:** An emergency button that touches monitoring could blind the safety system at the worst moment; correcting our own finding shows our conclusions come from evidence.
+- **Analogy:** Testing the fire extinguisher before the fire drill — and updating the report when a witness changes their story.
+- **Say it like this:** "We first thought Docker doesn't self-heal. Then we saw it auto-restart a real crash — our kill is treated as a deliberate stop. So our controller restores what it breaks itself, and real crashes are Docker's job."
+- **Likely judge question + our answer:** "Do you rely on Docker's restart policy?" — "No. The controller always restores what it broke. Docker's restart only covers real crashes, which we saw happen to product-catalog at 12:40."
+- **Numbers to remember:** emergency stop 5.4 s · 17 allowlisted targets cleaned, 11 protected ones never touched · product-catalog auto-restarted at 12:40 (RestartCount 1).
+
+---
+## [2026-10-10 14:45] Docker froze — the referee must never freeze with it — Milestone item 5 (Safety controls)
+
+### 🗣️ Explain it to the judges
+- **What we did (plain English):** During our break, Docker itself — the engine everything runs on — stopped answering. We realised our safety referee would have frozen with it and never undone a fault, so every command it sends to Docker now gives up after 60 seconds and says so loudly. After restarting Docker, only 4 of 28 parts of the shop came back by themselves; one command brought back the rest.
+- **Why it matters:** A safety system must fail safely, and an app that doesn't come back after an infrastructure restart is a real resilience weakness.
+- **Analogy:** A lifeguard whose radio dies doesn't keep waiting for instructions — they blow the whistle and clear the pool.
+- **Say it like this:** "Our own infrastructure froze during the hackathon. We used it: the controller now times out every Docker call, and we found the shop doesn't fully come back on its own after a Docker restart."
+- **Likely judge question + our answer:** "What if the chaos tool itself fails mid-experiment?" — "Every Docker call times out after 60 seconds, the controller reports it, and `stop_all.ps1` restores everything; Pumba's network faults also undo themselves after their duration."
+- **Numbers to remember:** Docker unresponsive at 14:20 · 60 s timeout per Docker command · only 4 of 28 containers auto-returned after restart · 28/28 back at 14:42.
+
+---
+## [2026-10-10 15:05] Our rehearsal beat our own safety rule → abort on a 30-second average; control-room dashboard — Milestone items 5 + 6
+
+**This replaces the earlier explanation that the safety stop fires after "6 bad checks in a row", because our rehearsal showed bursty damage can slip past that rule.**
+
+### 🗣️ Explain it to the judges
+- **What we did (plain English):** In our rehearsal, crashing the recommendation service hurt up to 27% of requests, but in bursts — and every normal reading in between reset our "6 bad checks in a row" counter, so the referee never stopped the test. We changed the rule to "stop if the average of the last 30 seconds is over the limit" and replayed it on every real run we have: it now stops both runs at 31 seconds and never false-alarms on healthy data. We also built a control-room web page with live numbers, the map, a START button and a big red STOP button.
+- **Why it matters:** A safety rule that intermittent damage can sneak past isn't safe. Finding that in our own rehearsal — and proving the fix on recorded data — is exactly what chaos engineering is for.
+- **Analogy:** A smoke alarm that only goes off after 30 seconds of continuous smoke would miss a fire that flickers; ours now listens to the average.
+- **Say it like this:** "Our own rehearsal tricked our safety rule: the damage came in bursts. So we switched to a 30-second average and replayed every recorded run — it now stops both at 31 seconds with zero false alarms on healthy traffic."
+- **Likely judge question + our answer:** "Couldn't an average be too slow or too twitchy?" — "We checked against real data: on healthy traffic the worst 30-second average was 572 ms against a 1,034 ms limit, so lots of margin; on both failure runs it fired at 31 seconds — 10 seconds faster than the old rule."
+- **Numbers to remember:** rehearsal: 27% peak errors, 8 of 18 bad checks, longest streak 4, no abort · new rule: abort at +31 s on both runs · baseline worst 30 s average 572 ms vs 1,034 ms limit · STOP reacts within ~1 s.

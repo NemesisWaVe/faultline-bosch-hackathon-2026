@@ -45,3 +45,33 @@
   Hypothesis: the burst of queued recommendation requests (each one asks product-catalog for products) overloaded product-catalog. To check in Jaeger.
 - **13:33 Published:** https://github.com/NemesisWaVe/faultline-bosch-hackathon-2026 (public, MIT license, README with deploy steps).
   Commit author changed to GitHub's private no-reply address before the first push, so no personal email is public.
+- **13:45 CORRECTION to the 12:24 finding:** `docker kill` is treated by Docker as a deliberate stop by the operator, so the
+  restart policy is skipped — that's normal Docker behaviour, not "no self-healing". Evidence: product-catalog crashed on its
+  own at 12:40 and Docker DID auto-restart it (RestartCount 1; not OOM-flagged; 16.5 of 20 MB memory in use; cause unknown).
+- **13:45 Emergency stop fixed + tested:** `stop_all.ps1` used to run a network-cleanup container against all 28 containers
+  (incl. monitoring) and would have pulled an unverified image. Now: only the 17 allowlisted targets, and only if a network
+  fault ever ran. Test run with nothing broken: 5.4 s, no changes, 28/28 Up. Not yet tested on a broken container.
+- **13:45** `docs/DEMO_SCRIPT.md` written (3 min, roles, exact commands, fallbacks, judge Q&A).
+- **14:20 Docker engine froze** (no answer for >60 s, shop down; laptop had 13 GB free and did not sleep; cause unknown).
+  Fix in our controller: every Docker command now times out after 60 s and reports it instead of hanging — tested against the real hang.
+- **14:41 After Docker Desktop restart only 4 of 28 containers came back** on their own; the restart policy did not cover this
+  case. Re-ran the compose start command → 28/28 Up at 14:42; load set back to 15 users; shopper numbers (0% errors,
+  258–744 ms) match the 13:08 baseline, so the baseline is still valid.
+- **14:52 Rehearsal run (kill recommendation, 90 s) — safety stop did NOT fire although shoppers were hurt:**
+  errors up to 27% and avg response up to 3.7 s in 8 of 18 checks, but the damage came in bursts; the longest run of bad
+  checks was 4, and every single normal reading reset the "6 in a row" counter. Fault undone by the 90 s timer; recovery 10 s.
+- **15:00 Abort rule changed to a 30 s rolling average** (`abort_window_checks: 6`). Replayed on all real data:
+  run 1 → aborts at +31 s (old rule +41 s); rehearsal run → aborts at +31 s (old rule never); healthy baseline → no false alarm
+  (worst 30 s average 572 ms vs 1,034 ms limit). Replay-tested; not yet tested live.
+- **15:00 Dashboard `dashboard/app.py` (Streamlit)** running at http://localhost:8501: live shopper numbers vs limits, map,
+  experiment START + big STOP button, live referee output, experiment history with timelines. Read-only views tested in the
+  browser; START/STOP not yet tested live. Controller additions: STOP file (checked every 1 s) and a one-experiment-at-a-time
+  lock shared by dashboard and command line (both unit-tested).
+- **15:03 Experiment 3 — kill recommendation, NEW 30 s-average rule, live:** safety stop fired at +31 s
+  (`30 s average: errors 9.4% > 5.0%; avg response 2178 ms > 1034 ms`) → new rule tested live ✅.
+  BUT after the restore the whole shop failed (up to 100% errors, Grafana 503) and did NOT recover within 5 min.
+  Cause unknown — likely linked to the Docker engine degrading (it fully froze ~15:34). Unresolved finding.
+- **15:34 Docker froze again**; our 60 s timeout made the next run fail safely BEFORE injecting anything. PC restarted ~16:00.
+- **16:21 Dashboard security fix:** Streamlit was listening on the venue network (10.19.49.92:8501) — anyone on the Wi-Fi could
+  have pressed START. Now bound to 127.0.0.1 only (verified: server reports only http://127.0.0.1:8501).
+  Also: shows "Docker not answering" instead of 0/0, and explains a failed run in plain English.

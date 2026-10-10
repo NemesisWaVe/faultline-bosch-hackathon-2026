@@ -29,6 +29,34 @@ from metrics import locust_counters, locust_window, per_service  # noqa: E402
 
 CFG = yaml.safe_load((ROOT / "config" / "thresholds.yaml").read_text())
 LOG = ROOT / "reports" / "experiments.jsonl"
+STOP_FILE = ROOT / "reports" / "STOP"            # the dashboard's STOP button creates this file
+LOCK = ROOT / "reports" / "experiment.lock"      # "an experiment is running" — refreshed every second
+LOCK_STALE_SECONDS = 60                          # a lock not refreshed for 60 s belongs to a crashed run
+
+
+def acquire_lock():
+    """One experiment at a time: refuse to start while another run's lock is still being refreshed."""
+    if LOCK.exists() and time.time() - LOCK.stat().st_mtime < LOCK_STALE_SECONDS:
+        raise SystemExit("REFUSED: another experiment is already running (reports/experiment.lock). One at a time.")
+    LOCK.parent.mkdir(exist_ok=True)
+    LOCK.write_text(time.strftime("%H:%M:%S"))
+    STOP_FILE.unlink(missing_ok=True)  # an old STOP press must not cancel a new experiment
+
+
+def release_lock():
+    LOCK.unlink(missing_ok=True)
+    STOP_FILE.unlink(missing_ok=True)
+
+
+def wait(seconds):
+    """Sleep in 1 s steps, keep the lock fresh, and return True as soon as STOP is pressed."""
+    end = time.time() + seconds
+    while time.time() < end:
+        LOCK.touch()
+        if STOP_FILE.exists():
+            return True
+        time.sleep(1)
+    return False
 
 
 def now():
@@ -62,6 +90,14 @@ def read():
     return locust_window(prev, cur) if prev else {"error_rate": None, "mean_ms": None, "rps": None}
 
 
+def average(recent):
+    """Average error rate and response time over a list of 5 s readings (None if any reading is missing)."""
+    if not recent or any(s.get("error_rate") is None or s.get("mean_ms") is None for s in recent):
+        return None
+    return {"error_rate": sum(s["error_rate"] for s in recent) / len(recent),
+            "mean_ms": round(sum(s["mean_ms"] for s in recent) / len(recent))}
+
+
 def breached(s, limits):
     reasons = []
     if s.get("error_rate") is not None and s["error_rate"] > limits["max_error_rate"]:
@@ -86,19 +122,19 @@ def healthy(recent, limits):
     return avg_err <= max(limits["baseline_error_rate"] * (1 + tol), 0.01) and avg_ms <= limits["baseline_mean_ms"] * (1 + tol)
 
 
-def fmt(s, limits, streak=None):
+def fmt(s, limits, avg=None):
     err = "  n/a " if s.get("error_rate") is None else f"{s['error_rate']:6.1%}"
-    line = (f"errors {err} (limit {limits['max_error_rate']:.1%})  "
-            f"avg {s.get('mean_ms')} ms (limit {limits['max_mean_ms']:.0f} ms)  rps {s.get('rps')}")
-    if streak is not None:
-        line += f"  breach {streak}/{CFG['consecutive_breaches_to_abort']}"
+    line = (f"now: errors {err}  avg {s.get('mean_ms')} ms  rps {s.get('rps')}")
+    if avg is not None:
+        line += (f"  |  30s avg: errors {avg['error_rate']:.1%} (limit {limits['max_error_rate']:.1%})"
+                 f"  avg {avg['mean_ms']} ms (limit {limits['max_mean_ms']:.0f} ms)")
     return line
 
 
 def run(kind, target, duration, **params):
     limits = load_limits()
     interval = CFG["check_interval_seconds"]
-    needed = CFG["consecutive_breaches_to_abort"]
+    window = CFG["abort_window_checks"]  # 6 readings x 5 s = judge the last 30 s
     duration = min(duration, CFG["max_experiment_seconds"])
     fault = make_fault(kind, target, duration, **params)  # refuses non-allowlisted targets
 
@@ -121,27 +157,34 @@ def run(kind, target, duration, **params):
     signal.signal(signal.SIGINT, on_ctrl_c)
 
     print(f"{now()}  Limits: abort if errors > {limits['max_error_rate']:.1%} or avg response > {limits['max_mean_ms']:.0f} ms "
-          f"for {needed * interval}s; hard stop after {duration}s")
+          f"on average over the last {window * interval}s; hard stop after {duration}s")
     read()  # first reading = starting point for the 5 s windows
     print(f"{now()}  INJECT {kind} on {target} {params or ''}")
     t0 = time.time()
     fault.inject()
 
-    streak = 0
+    recent = []  # the last `window` readings
     try:
         # ---- Phase 1: fault active, referee watching ----
         while time.time() - t0 < duration:
-            time.sleep(interval)
+            if wait(interval):
+                record["abort_fired"], record["abort_reason"] = True, "manual stop (dashboard STOP button)"
+                print(f"{now()}  !!! STOP pressed — undoing the fault now")
+                restore("manual stop, dashboard")
+                break
             s = read()
-            reasons = breached(s, limits)
-            streak = streak + 1 if reasons else 0
+            # Why an average, not "N bad checks in a row": in our 14:52 rehearsal the damage came in bursts
+            # (up to 27% errors) and one normal reading kept resetting the streak, so the abort never fired.
+            recent = (recent + [s])[-window:]
+            avg = average(recent) if len(recent) == window else None
+            reasons = breached(avg, limits) if avg else []
             record["timeline"].append({"t": round(time.time() - t0), "phase": "fault", **s})
             record["peak_error_rate"] = max(record["peak_error_rate"], s.get("error_rate") or 0)
             record["peak_mean_ms"] = max(record["peak_mean_ms"], s.get("mean_ms") or 0)
-            print(f"{now()}  [fault +{time.time() - t0:5.0f}s]  {fmt(s, limits, streak)}  container {state(target)}")
-            if streak >= needed:
-                record["abort_fired"], record["abort_reason"] = True, "; ".join(reasons)
-                print(f"{now()}  !!! ABORT: limits breached for {needed * interval}s in a row ({'; '.join(reasons)})")
+            print(f"{now()}  [fault +{time.time() - t0:5.0f}s]  {fmt(s, limits, avg)}  container {state(target)}")
+            if reasons:
+                record["abort_fired"], record["abort_reason"] = True, "30 s average: " + "; ".join(reasons)
+                print(f"{now()}  !!! ABORT: the last {window * interval}s averaged over the limit ({'; '.join(reasons)})")
                 restore("automatic abort")
                 break
         else:
@@ -157,7 +200,7 @@ def run(kind, target, duration, **params):
     per_window = max(1, stable_needed // interval)  # 30 s / 5 s = 6 readings
     t_restore, recent = restored["at"], []
     while time.time() - t_restore < give_up:
-        time.sleep(interval)
+        wait(interval)  # STOP has nothing left to undo here; we just keep measuring recovery
         s = read()
         record["timeline"].append({"t": round(time.time() - t0), "phase": "recovery", **s})
         recent = (recent + [(time.time(), s)])[-per_window:]
@@ -200,4 +243,8 @@ if __name__ == "__main__":
     ap.add_argument("--percent", type=int, default=20)
     a = ap.parse_args()
     extra = {"ms": a.ms} if a.kind == "delay" else {"percent": a.percent} if a.kind == "loss" else {}
-    run(a.kind, a.target, a.duration, **extra)
+    acquire_lock()
+    try:
+        run(a.kind, a.target, a.duration, **extra)
+    finally:
+        release_lock()

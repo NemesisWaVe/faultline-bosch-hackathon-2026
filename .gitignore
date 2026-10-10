@@ -4,3 +4,6 @@ __pycache__/
 .env
 reports/*.log
 reports/compose_resolved.json
+reports/STOP
+reports/experiment.lock
+reports/live_run.log

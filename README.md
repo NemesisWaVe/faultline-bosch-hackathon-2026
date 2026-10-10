@@ -30,13 +30,15 @@ Built for the **Bosch hackathon "AI-Driven Chaos Engineering for Cloud-Native Re
 | Injector | Breaks one allowlisted container: crash (`kill`), freeze (`pause`), network delay/loss (Pumba — not yet tested) | `chaos/inject.py` |
 | Safety controller | Runs one experiment; aborts and restores if errors or slowness stay over the limits for 30 s; then measures recovery time; logs everything | `controller/safety.py` → `reports/experiments.jsonl` |
 | Emergency stop | Undoes every possible fault on every shop container | `chaos/stop_all.ps1` |
+| **Dashboard (control room)** | Web page: live shopper numbers vs safety limits, dependency map, START + big red STOP button, live referee output, experiment history with timelines | `dashboard/app.py` → http://localhost:8501 |
 
 ### Safety rules (seat belts)
 1. **Allowlist/denylist** (`config/targets.yaml`): only shop services in our own Docker Compose project can be targeted; monitoring, the load generator and the proxy can never be broken.
 2. **Hard time limit:** every fault is undone after at most 120 s.
-3. **Threshold abort** (`config/thresholds.yaml`): stop early if errors > max(5%, 3× baseline) or average response > 2× baseline for 30 s.
-4. **Ctrl+C** restores immediately; `chaos/stop_all.ps1` is the big red button.
-5. **One experiment at a time**, never anything outside this laptop.
+3. **Threshold abort** (`config/thresholds.yaml`): stop early if the **average of the last 30 s** shows errors > max(5%, 3× baseline) or average response > 2× baseline.
+4. **One experiment at a time:** a lock shared by the dashboard and the command line refuses a second run.
+5. **Ctrl+C** or the dashboard STOP button restores immediately; `chaos/stop_all.ps1` is the big red button.
+6. Never anything outside this laptop; the dashboard only listens on localhost.
 
 ---
 
@@ -96,6 +98,7 @@ python mapper\build_map.py                                   # dependency map  -
 python baseline\capture.py --seconds 180                     # healthy numbers -> reports\baseline.json
 python controller\safety.py kill recommendation --duration 90   # one safe experiment -> reports\experiments.jsonl
 powershell -ExecutionPolicy Bypass -File chaos\stop_all.ps1  # emergency: undo everything
+streamlit run dashboardpp.py --server.address 127.0.0.1    # control-room dashboard (this laptop only)
 ```
 Always confirm afterwards with `docker compose ps` (in the OTel Demo folder) that every service is back Up.
 

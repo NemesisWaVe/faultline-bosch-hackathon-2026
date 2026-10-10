@@ -4,7 +4,9 @@
 # The *_multiplier values are relative to the healthy baseline in reports/baseline.json.
 
 check_interval_seconds: 5          # how often the referee looks at the scoreboard
-consecutive_breaches_to_abort: 6   # 6 checks x 5 s = 30 s of sustained damage before aborting
+abort_window_checks: 6             # abort when the AVERAGE of the last 6 checks (30 s) is over a limit
+# Why not "6 bad checks in a row"? Our 14:52 rehearsal: damage came in bursts (up to 27% errors in 8 of 18
+# checks) and every single normal reading reset the streak, so the abort never fired.
 
 error_rate:
   absolute_floor: 0.05             # abort if errors exceed 5% ...

@@ -83,7 +83,7 @@
 - **Numbers to remember:** abort at +41 s (limit 90 s) · abort reason errors 9.1% > 5%, avg 1,745 ms > 1,034 ms · peak errors 20% · peak avg response 3.7 s · recovery 66 s · aftershock up to 50% errors / 9.7 s · 21 s silence before traffic returned.
 
 ---
-## [2026-10-10 13:40] Published the repo "Faultline" with README + deploy steps — Submission requirement (repo link + deployment steps)
+## [2026-10-10 13:33] Published the repo "Faultline" with README + deploy steps — Submission requirement (repo link + deployment steps)
 
 ### 🗣️ Explain it to the judges
 - **What we did (plain English):** We named the project Faultline and put the code on GitHub publicly, with an open-source license (MIT) and a README that explains, step by step, how anyone can start the shop and run our safety-controlled experiments on their own laptop. Before publishing we checked there were no passwords, keys or personal emails anywhere in the history.

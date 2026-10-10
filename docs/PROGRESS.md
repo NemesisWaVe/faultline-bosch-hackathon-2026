@@ -43,5 +43,5 @@
   likely the frontend's connection retry waiting ("backoff") then releasing queued requests. (3) AFTERSHOCK: 30–60 s after the restore,
   a second wave hit (25–50% errors, 6–9.7 s responses). Cause NOT yet confirmed: database did not crash and product-catalog logged no errors.
   Hypothesis: the burst of queued recommendation requests (each one asks product-catalog for products) overloaded product-catalog. To check in Jaeger.
-- **13:40 Published:** https://github.com/NemesisWaVe/faultline-bosch-hackathon-2026 (public, MIT license, README with deploy steps).
+- **13:33 Published:** https://github.com/NemesisWaVe/faultline-bosch-hackathon-2026 (public, MIT license, README with deploy steps).
   Commit author changed to GitHub's private no-reply address before the first push, so no personal email is public.

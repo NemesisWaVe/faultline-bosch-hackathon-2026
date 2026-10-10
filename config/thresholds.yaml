@@ -1,0 +1,21 @@
+# Safety thresholds for the chaos controller.
+# Plain English: these are the "too much damage" lines. If the shop gets worse than this
+# for 30 seconds in a row, the safety controller stops the experiment and repairs everything.
+# The *_multiplier values are relative to the healthy baseline in reports/baseline.json.
+
+check_interval_seconds: 5          # how often the referee looks at the scoreboard
+consecutive_breaches_to_abort: 6   # 6 checks x 5 s = 30 s of sustained damage before aborting
+
+error_rate:
+  absolute_floor: 0.05             # abort if errors exceed 5% ...
+  baseline_multiplier: 3.0         # ... or 3x the normal error rate, whichever is HIGHER
+
+p95_latency:
+  baseline_multiplier: 2.0         # abort if the slow-tail response time doubles
+
+max_experiment_seconds: 120        # seat belt #2: every fault is undone after 2 minutes no matter what
+
+recovery:
+  tolerance: 0.20                  # "recovered" = within 20% of baseline ...
+  stable_seconds: 30               # ... for 30 seconds straight
+  give_up_after_seconds: 300       # stop waiting for recovery after 5 minutes and flag it

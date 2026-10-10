@@ -1,0 +1,26 @@
+# Glossary — plain-English definitions
+
+- **Baseline** — measurements of the system when everything is normal; our "healthy" reference point.
+- **Blast radius** — how much of the system a failure can affect. Small blast radius = only one small part gets hurt.
+- **Chaos engineering** — breaking things on purpose, safely, to find weaknesses before real outages do.
+- **Circuit breaker** — code that stops calling a broken service for a while, like a fuse that trips to protect the house.
+- **Compose file (compose.yaml)** — a recipe file listing which containers to start and how they connect. The OTel Demo splits its recipe across several files (core shop, extra services, monitoring tools).
+- **Container** — a sealed box containing one program and everything it needs to run; Docker runs these boxes.
+- **Dependency** — when service A needs service B to do its job (checkout needs payment).
+- **Docker Compose** — a tool that starts many containers together with one command, using compose files.
+- **Error rate** — the percentage of requests that fail.
+- **Fallback** — a backup answer when a service is down (e.g., show default recommendations instead of none).
+- **Git clone** — downloading a copy of a project's code from GitHub onto our laptop.
+- **Kill switch** — a way to instantly stop an experiment and undo the damage.
+- **Latency** — how long a request takes to get an answer.
+- **Load generator (Locust)** — a tool that pretends to be many shoppers using the site at once.
+- **Microservice** — one small program that does one job; the shop is made of ~20 of them.
+- **netem** — a Linux feature that can add artificial delay or packet loss to network traffic.
+- **Observability** — being able to see what's happening inside a system through metrics, logs and traces.
+- **p95 latency** — the response time that 95 out of 100 requests are faster than; shows the "slow tail" users feel.
+- **Prometheus / PromQL** — a database of system numbers over time / the query language to ask it questions.
+- **Recovery time** — how long the system takes to get back to normal after the failure is removed.
+- **Resilience** — a system's ability to keep working (maybe degraded) and bounce back when parts fail.
+- **Retry** — automatically trying a failed request again.
+- **Timeout** — a maximum wait time; after it, give up instead of hanging forever.
+- **Trace (Jaeger)** — the full journey of one request through all the services it touched.

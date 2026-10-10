@@ -49,3 +49,13 @@
 - **Say it like this:** "We measured how fresh each data source is: Prometheus refreshes every ~60 s, so our kill switch watches the shoppers' live experience instead, and we use Prometheus to explain *which* service caused it."
 - **Likely judge question + our answer:** *"Why not just use Prometheus for everything?"* — "We checked the sample timestamps: about 55–60 s apart. A 30-second abort rule can't work on data that arrives once a minute."
 - **Numbers to remember:** 28 containers; Prometheus refresh ≈ 60 s; Locust refresh ≈ 2 s; we ignore `/prompt` (chatbot add-on we didn't deploy).
+
+---
+## [2026-10-10 12:30] Real-traffic map + first manual crash — Milestone 1 items 2 & 4
+
+- **What we did (plain English):** We compared the map from the setup files with what the tracing tool actually saw shoppers do. We also crashed the recommendation service by hand and checked whether Docker brought it back on its own.
+- **Why it matters:** Config shows what *could* happen; traffic shows what *does*. And a crash test with no automatic recovery is our first real resilience weakness.
+- **Analogy:** The building's floor plan versus CCTV of where people actually walk.
+- **Say it like this:** "Every service-to-service call in the config was confirmed by real traffic; the only gaps were databases and the message queue, which tracing can't name — so we need both views. And when we killed a service, Docker did not restart it by itself."
+- **Likely judge question + our answer:** *"The containers have a restart policy — why didn't it restart?"* — "Docker treats `docker kill` as a deliberate manual stop, so the policy doesn't fire. A real crash inside the app would be restarted, but a killed or OOM-stopped box needs a health-based restarter (like Kubernetes liveness probes) — that's a fix we can propose."
+- **Numbers to remember:** 20 nodes, 28 links; astronomy-db hurts 5 services, kafka 4; recommendation RestartCount = 0 after kill.

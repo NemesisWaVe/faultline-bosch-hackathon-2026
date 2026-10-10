@@ -10,8 +10,10 @@ error_rate:
   absolute_floor: 0.05             # abort if errors exceed 5% ...
   baseline_multiplier: 3.0         # ... or 3x the normal error rate, whichever is HIGHER
 
-p95_latency:
-  baseline_multiplier: 2.0         # abort if the slow-tail response time doubles
+latency:
+  baseline_multiplier: 2.0         # abort if the average response time (per 5 s window) doubles
+  # Why not Locust's live p95? It mixes in chatbot timeouts and whole browser journeys we can't filter out.
+  # Per-service p95 is still reported from Prometheus after each experiment.
 
 max_experiment_seconds: 120        # seat belt #2: every fault is undone after 2 minutes no matter what
 

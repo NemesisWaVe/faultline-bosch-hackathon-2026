@@ -1,15 +1,19 @@
 """Where our numbers come from — shared by the baseline script and the safety controller.
 
 Plain English: we read two scoreboards.
-  1. LOCUST (the fake shoppers) — updates every ~2 s and measures what a shopper actually feels:
-     requests per second, how many fail, how slow the slowest 5% are (p95). Fast enough for the
-     safety referee, which checks every 5 s.
-  2. PROMETHEUS (via Grafana) — per-service detail, but only refreshed about every 60 s, so we use it
-     for reports ("which service caused it"), not for the emergency stop.
+  1. LOCUST (the fake shoppers) — measures what a shopper actually feels: requests per second, how many
+     fail, how long requests take. We read its running totals every 5 s and look at the DIFFERENCE,
+     like reading a car's odometer twice. Fast enough for the safety referee.
+  2. PROMETHEUS (via Grafana) — per-service detail (including p95), but only refreshed about every 60 s,
+     so we use it for reports ("which service caused it"), not for the emergency stop.
 
-Excluded on purpose: the "/prompt" requests. The load generator also talks to an optional AI-chatbot
-add-on that we did not start, so those calls always fail and are not a shop problem.
+Excluded on purpose:
+  - "/prompt": the load generator also talks to an optional AI-chatbot add-on we did not start, so those
+    calls always fail after a 4 s wait and are not a shop problem.
+  - "TASK ..." rows: whole simulated browser journeys timed end to end, not single requests.
 """
+import time
+
 import requests
 
 LOCUST_URL = "http://localhost:8080/loadgen/stats/requests"
@@ -17,20 +21,32 @@ PROM_URL = "http://localhost:8080/grafana/api/datasources/proxy/uid/webstore-met
 IGNORED_ENDPOINTS = {"/prompt"}
 
 
-def locust_snapshot():
-    """What shoppers feel right now: rps, error ratio (0-1), p50/p95 response time in ms."""
+def locust_counters():
+    """Locust's running totals since it started, counting real shop requests only."""
     d = requests.get(LOCUST_URL, timeout=5).json()
-    rows = [s for s in d["stats"] if s["name"] != "Aggregated" and s["name"] not in IGNORED_ENDPOINTS]
-    rps = sum(s["current_rps"] for s in rows)
-    fails = sum(s["current_fail_per_sec"] for s in rows)
-    pct = d.get("current_response_time_percentiles") or {}
+    rows = [s for s in d["stats"] if s["name"] != "Aggregated" and s["name"] not in IGNORED_ENDPOINTS
+            and not s["name"].startswith("TASK ")]
     return {
+        "time": time.time(),
         "users": d.get("user_count"),
         "state": d.get("state"),
-        "rps": round(rps, 3),
-        "error_rate": round(fails / rps, 4) if rps else None,
-        "p50_ms": pct.get("response_time_percentile_0.5"),
-        "p95_ms": pct.get("response_time_percentile_0.95"),
+        "requests": sum(s["num_requests"] for s in rows),
+        "failures": sum(s["num_failures"] for s in rows),
+        "total_ms": sum(s["avg_response_time"] * s["num_requests"] for s in rows),
+    }
+
+
+def locust_window(prev, cur):
+    """What shoppers felt BETWEEN two readings: requests/sec, error ratio (0-1), average response time (ms)."""
+    dn = cur["requests"] - prev["requests"]
+    dt = cur["time"] - prev["time"]
+    if dn < 0:  # someone pressed "reset stats" in Locust — skip this window
+        return {"users": cur["users"], "rps": None, "error_rate": None, "mean_ms": None}
+    return {
+        "users": cur["users"],
+        "rps": round(dn / dt, 2) if dt else None,
+        "error_rate": round((cur["failures"] - prev["failures"]) / dn, 4) if dn else None,
+        "mean_ms": round((cur["total_ms"] - prev["total_ms"]) / dn) if dn else None,
     }
 
 

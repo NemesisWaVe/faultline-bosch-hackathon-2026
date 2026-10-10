@@ -18,7 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "controller"))
-from metrics import locust_snapshot, per_service  # noqa: E402
+from metrics import locust_counters, locust_window, per_service  # noqa: E402
 
 
 def container_health():
@@ -44,21 +44,25 @@ def main(seconds, interval=5):
 
     samples, start = [], time.time()
     print(f"Capturing baseline for {seconds}s (one reading every {interval}s). Don't break anything!")
+    prev = locust_counters()
     while time.time() - start < seconds:
-        s = locust_snapshot()
+        time.sleep(interval)
+        cur = locust_counters()
+        s = locust_window(prev, cur)  # what happened in the last 5 s
+        prev = cur
         s["t"] = time.strftime("%H:%M:%S")
         samples.append(s)
         err = "n/a" if s["error_rate"] is None else f"{s['error_rate']:.1%}"
-        print(f"  {s['t']}  users {s['users']}  rps {s['rps']:5.1f}  errors {err:>6}  p50 {s['p50_ms']} ms  p95 {s['p95_ms']} ms")
-        time.sleep(interval)
+        print(f"  {s['t']}  users {s['users']}  rps {s['rps']}  errors {err:>6}  avg response {s['mean_ms']} ms")
 
     window = f"{max(2, round(seconds / 60))}m"
     result = {
         "captured_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         "duration_seconds": seconds,
         "load_users": samples[-1]["users"],
-        "note": "Locust '/prompt' requests excluded (optional AI-chatbot add-on not deployed).",
-        "shopper_view": {k: summarize([s[k] for s in samples]) for k in ("rps", "error_rate", "p50_ms", "p95_ms")},
+        "note": "Shopper view = 5 s windows of Locust totals; '/prompt' (chatbot add-on not deployed) and "
+                "'TASK' rows (whole browser journeys) excluded.",
+        "shopper_view": {k: summarize([s[k] for s in samples]) for k in ("rps", "error_rate", "mean_ms")},
         "per_service": per_service(window),
         "containers": health,
         "samples": samples,
@@ -70,7 +74,9 @@ def main(seconds, interval=5):
     print("\nBASELINE (what healthy looks like):")
     print(f"  traffic      {sv['rps']['mean']:.1f} requests/sec with {result['load_users']} fake shoppers")
     print(f"  error rate   {sv['error_rate']['mean']:.2%} on average" if sv["error_rate"] else "  error rate   n/a")
-    print(f"  p95 latency  {sv['p95_ms']['median']:.0f} ms (median of readings)")
+    print(f"  avg response {sv['mean_ms']['median']:.0f} ms (median of 5 s windows; worst {sv['mean_ms']['max']:.0f} ms)")
+    fe = result["per_service"].get("frontend") or {}
+    print(f"  frontend p95 {fe.get('p95_ms')} ms (Prometheus, whole capture window)")
     print(f"Saved to {out.relative_to(ROOT)}")
 
 

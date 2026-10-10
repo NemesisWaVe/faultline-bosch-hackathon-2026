@@ -3,7 +3,7 @@
 | # | Item | Status | Time | Evidence |
 |---|------|--------|------|----------|
 | 1 | Setup & app selection — sample app running end to end | ✅ done | 12:06 | All 28 containers Up; shop, Locust, Grafana, Jaeger return HTTP 200 |
-| 2 | Application mapping — services, dependencies, data flows | 🟡 static view done | 11:44 | `reports/dependency_map.png`, `.json` (clean flowchart layout; runtime view pending app start) |
+| 2 | Application mapping — services, dependencies, data flows | ✅ done | 12:28 | `reports/dependency_map.png` — config + real-traffic (Jaeger) views merged |
 | 3 | Monitoring baseline — error rate, latency, health under load | ⬜ | | |
 | 4 | First failure injection — triggered and observed | ⬜ | | |
 | 5 | Safety controls — auto stop/rollback, tested at least once | ⬜ | | |
@@ -17,3 +17,9 @@
 - **12:08** Metrics decision: Prometheus span metrics only refresh every ~60 s → too slow for a 5 s safety loop.
   Safety controller uses Locust live stats (~2 s refresh, what shoppers feel); Prometheus used for per-service reports.
   `/prompt` (optional AI-chatbot add-on, not deployed) excluded from error rate. Load was only 5 users (~1 rps) → raise before baseline.
+- **12:24** Team's first manual crash: `docker kill recommendation` → Docker did NOT auto-restart it (RestartCount 0); manual `docker start` restored it. Finding: no self-healing on kill despite `restart: unless-stopped`.
+- **12:28** Runtime map: all 19 service-to-service calls confirmed by traffic; browser (`frontend-web`) seen only in traffic; database/Kafka links seen only in config (tracing blind spot).
+- **12:31 UNPLANNED EXPERIMENT (traffic spike):** load raised to 50 users → 48% errors, 9.5 s avg response.
+  `astronomy-db` OOMKilled=true (memory limit only 80 MB) → product-catalog requests returned 504 Gateway Timeout.
+  Load generator itself at ~880% CPU / 99.7% memory (OOM flag) → 50 users is beyond what the load generator can drive.
+  Finding: the #1 critical service on our map (astronomy-db) is the first to fail under a spike. Fix idea: raise DB memory limit / add connection pooling / cache product catalog.

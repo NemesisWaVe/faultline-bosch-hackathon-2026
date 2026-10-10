@@ -35,7 +35,7 @@ JAEGER_DEPS_URL = "http://localhost:8080/jaeger/ui/api/dependencies"
 SUPPORT = {"otel-collector", "opamp-server", "flagd", "flagd-ui", "jaeger", "prometheus",
            "grafana", "opensearch", "telemetry-docs"}
 # Where traffic enters the shop. Kept on the map so judges can see the request path.
-ENTRY = {"load-generator", "frontend-proxy"}
+ENTRY = {"load-generator", "frontend-proxy", "frontend-web"}  # frontend-web = code running in the shopper's browser
 
 
 def load_compose():

@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-10-10 11:54:45",
-  "runtime_view_available": false,
+  "generated_at": "2026-10-10 12:28:27",
+  "runtime_view_available": true,
   "nodes": [
     {
       "name": "astronomy-db",
@@ -247,8 +247,19 @@
         "image-provider"
       ],
       "depended_on_by": [
+        "frontend-web",
         "load-generator"
       ],
+      "impacted_if_down": [],
+      "impact_count": 0
+    },
+    {
+      "name": "frontend-web",
+      "role": "entry",
+      "depends_on": [
+        "frontend-proxy"
+      ],
+      "depended_on_by": [],
       "impacted_if_down": [],
       "impact_count": 0
     },
@@ -276,22 +287,22 @@
   "edges": [
     {
       "from": "accounting",
-      "to": "astronomy-db",
-      "source": "static",
-      "static_kind": "config",
-      "calls": 0,
-      "async": false,
-      "drawn_reversed": false,
-      "hidden": false
-    },
-    {
-      "from": "accounting",
       "to": "kafka",
       "source": "static",
       "static_kind": "config",
       "calls": 0,
       "async": true,
       "drawn_reversed": true,
+      "hidden": false
+    },
+    {
+      "from": "accounting",
+      "to": "astronomy-db",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0,
+      "async": false,
+      "drawn_reversed": false,
       "hidden": false
     },
     {
@@ -306,66 +317,6 @@
     },
     {
       "from": "checkout",
-      "to": "shipping",
-      "source": "static",
-      "static_kind": "config",
-      "calls": 0,
-      "async": false,
-      "drawn_reversed": false,
-      "hidden": false
-    },
-    {
-      "from": "checkout",
-      "to": "product-catalog",
-      "source": "static",
-      "static_kind": "config",
-      "calls": 0,
-      "async": false,
-      "drawn_reversed": false,
-      "hidden": false
-    },
-    {
-      "from": "checkout",
-      "to": "cart",
-      "source": "static",
-      "static_kind": "config",
-      "calls": 0,
-      "async": false,
-      "drawn_reversed": false,
-      "hidden": false
-    },
-    {
-      "from": "checkout",
-      "to": "email",
-      "source": "static",
-      "static_kind": "config",
-      "calls": 0,
-      "async": false,
-      "drawn_reversed": false,
-      "hidden": false
-    },
-    {
-      "from": "checkout",
-      "to": "payment",
-      "source": "static",
-      "static_kind": "config",
-      "calls": 0,
-      "async": false,
-      "drawn_reversed": false,
-      "hidden": false
-    },
-    {
-      "from": "checkout",
-      "to": "currency",
-      "source": "static",
-      "static_kind": "config",
-      "calls": 0,
-      "async": false,
-      "drawn_reversed": false,
-      "hidden": false
-    },
-    {
-      "from": "checkout",
       "to": "kafka",
       "source": "static",
       "static_kind": "config",
@@ -375,11 +326,61 @@
       "hidden": false
     },
     {
-      "from": "shipping",
-      "to": "quote",
-      "source": "static",
+      "from": "checkout",
+      "to": "currency",
+      "source": "both",
       "static_kind": "config",
-      "calls": 0,
+      "calls": 91,
+      "async": false,
+      "drawn_reversed": false,
+      "hidden": false
+    },
+    {
+      "from": "checkout",
+      "to": "cart",
+      "source": "both",
+      "static_kind": "config",
+      "calls": 64,
+      "async": false,
+      "drawn_reversed": false,
+      "hidden": false
+    },
+    {
+      "from": "checkout",
+      "to": "payment",
+      "source": "both",
+      "static_kind": "config",
+      "calls": 32,
+      "async": false,
+      "drawn_reversed": false,
+      "hidden": false
+    },
+    {
+      "from": "checkout",
+      "to": "email",
+      "source": "both",
+      "static_kind": "config",
+      "calls": 32,
+      "async": false,
+      "drawn_reversed": false,
+      "hidden": false
+    },
+    {
+      "from": "checkout",
+      "to": "product-catalog",
+      "source": "both",
+      "static_kind": "config",
+      "calls": 59,
+      "async": false,
+      "drawn_reversed": false,
+      "hidden": false
+    },
+    {
+      "from": "checkout",
+      "to": "shipping",
+      "source": "both",
+      "static_kind": "config",
+      "calls": 64,
       "async": false,
       "drawn_reversed": false,
       "hidden": false
@@ -390,6 +391,16 @@
       "source": "static",
       "static_kind": "config",
       "calls": 0,
+      "async": false,
+      "drawn_reversed": false,
+      "hidden": false
+    },
+    {
+      "from": "shipping",
+      "to": "quote",
+      "source": "both",
+      "static_kind": "config",
+      "calls": 144,
       "async": false,
       "drawn_reversed": false,
       "hidden": false
@@ -406,40 +417,10 @@
     },
     {
       "from": "frontend",
-      "to": "shipping",
-      "source": "static",
+      "to": "currency",
+      "source": "both",
       "static_kind": "config",
-      "calls": 0,
-      "async": false,
-      "drawn_reversed": false,
-      "hidden": false
-    },
-    {
-      "from": "frontend",
-      "to": "product-catalog",
-      "source": "static",
-      "static_kind": "config",
-      "calls": 0,
-      "async": false,
-      "drawn_reversed": false,
-      "hidden": false
-    },
-    {
-      "from": "frontend",
-      "to": "cart",
-      "source": "static",
-      "static_kind": "config",
-      "calls": 0,
-      "async": false,
-      "drawn_reversed": false,
-      "hidden": false
-    },
-    {
-      "from": "frontend",
-      "to": "recommendation",
-      "source": "static",
-      "static_kind": "config",
-      "calls": 0,
+      "calls": 972,
       "async": false,
       "drawn_reversed": false,
       "hidden": false
@@ -447,19 +428,49 @@
     {
       "from": "frontend",
       "to": "ad",
-      "source": "static",
+      "source": "both",
       "static_kind": "config",
-      "calls": 0,
+      "calls": 173,
       "async": false,
       "drawn_reversed": false,
       "hidden": false
     },
     {
       "from": "frontend",
-      "to": "currency",
-      "source": "static",
+      "to": "cart",
+      "source": "both",
       "static_kind": "config",
-      "calls": 0,
+      "calls": 1300,
+      "async": false,
+      "drawn_reversed": false,
+      "hidden": false
+    },
+    {
+      "from": "frontend",
+      "to": "product-catalog",
+      "source": "both",
+      "static_kind": "config",
+      "calls": 3757,
+      "async": false,
+      "drawn_reversed": false,
+      "hidden": false
+    },
+    {
+      "from": "frontend",
+      "to": "shipping",
+      "source": "both",
+      "static_kind": "config",
+      "calls": 112,
+      "async": false,
+      "drawn_reversed": false,
+      "hidden": false
+    },
+    {
+      "from": "frontend",
+      "to": "recommendation",
+      "source": "both",
+      "static_kind": "config",
+      "calls": 716,
       "async": false,
       "drawn_reversed": false,
       "hidden": false
@@ -467,9 +478,9 @@
     {
       "from": "frontend",
       "to": "checkout",
-      "source": "static",
+      "source": "both",
       "static_kind": "config",
-      "calls": 0,
+      "calls": 32,
       "async": false,
       "drawn_reversed": false,
       "hidden": false
@@ -497,19 +508,9 @@
     {
       "from": "recommendation",
       "to": "product-catalog",
-      "source": "static",
+      "source": "both",
       "static_kind": "config",
-      "calls": 0,
-      "async": false,
-      "drawn_reversed": false,
-      "hidden": false
-    },
-    {
-      "from": "frontend-proxy",
-      "to": "frontend",
-      "source": "static",
-      "static_kind": "config",
-      "calls": 0,
+      "calls": 719,
       "async": false,
       "drawn_reversed": false,
       "hidden": false
@@ -517,9 +518,19 @@
     {
       "from": "frontend-proxy",
       "to": "image-provider",
-      "source": "static",
+      "source": "both",
       "static_kind": "config",
-      "calls": 0,
+      "calls": 2789,
+      "async": false,
+      "drawn_reversed": false,
+      "hidden": false
+    },
+    {
+      "from": "frontend-proxy",
+      "to": "frontend",
+      "source": "both",
+      "static_kind": "config",
+      "calls": 10742,
       "async": false,
       "drawn_reversed": false,
       "hidden": false
@@ -527,9 +538,9 @@
     {
       "from": "load-generator",
       "to": "frontend-proxy",
-      "source": "static",
+      "source": "both",
       "static_kind": "config",
-      "calls": 0,
+      "calls": 671,
       "async": false,
       "drawn_reversed": false,
       "hidden": false
@@ -543,10 +554,90 @@
       "async": false,
       "drawn_reversed": false,
       "hidden": true
+    },
+    {
+      "from": "frontend-web",
+      "to": "frontend-proxy",
+      "source": "runtime-only",
+      "calls": 4381,
+      "async": false,
+      "drawn_reversed": false,
+      "hidden": false
     }
   ],
-  "only_in_config": [],
-  "only_in_traffic": [],
+  "only_in_config": [
+    {
+      "from": "accounting",
+      "to": "kafka",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0,
+      "async": true,
+      "drawn_reversed": true,
+      "hidden": false
+    },
+    {
+      "from": "accounting",
+      "to": "astronomy-db",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0,
+      "async": false,
+      "drawn_reversed": false,
+      "hidden": false
+    },
+    {
+      "from": "cart",
+      "to": "valkey-cart",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0,
+      "async": false,
+      "drawn_reversed": false,
+      "hidden": false
+    },
+    {
+      "from": "checkout",
+      "to": "kafka",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0,
+      "async": true,
+      "drawn_reversed": false,
+      "hidden": false
+    },
+    {
+      "from": "product-catalog",
+      "to": "astronomy-db",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0,
+      "async": false,
+      "drawn_reversed": false,
+      "hidden": false
+    },
+    {
+      "from": "fraud-detection",
+      "to": "kafka",
+      "source": "static",
+      "static_kind": "config",
+      "calls": 0,
+      "async": true,
+      "drawn_reversed": true,
+      "hidden": false
+    }
+  ],
+  "only_in_traffic": [
+    {
+      "from": "frontend-web",
+      "to": "frontend-proxy",
+      "source": "runtime-only",
+      "calls": 4381,
+      "async": false,
+      "drawn_reversed": false,
+      "hidden": false
+    }
+  ],
   "excluded_support_services": [
     "flagd",
     "flagd-ui",

@@ -18,6 +18,6 @@ latency:
 max_experiment_seconds: 120        # seat belt #2: every fault is undone after 2 minutes no matter what
 
 recovery:
-  tolerance: 0.20                  # "recovered" = within 20% of baseline ...
-  stable_seconds: 30               # ... for 30 seconds straight
+  tolerance: 0.20                  # "recovered" = the 30 s AVERAGE is within 20% of baseline
+  stable_seconds: 30               # (averaged because healthy 5 s readings alone swing 300-900 ms)
   give_up_after_seconds: 300       # stop waiting for recovery after 5 minutes and flag it

@@ -1,5 +1,9 @@
 # Glossary — plain-English definitions
 
+- **504 Gateway Timeout** — the front door (proxy) gave up waiting for the service behind it and told the shopper 'too slow'.
+- **Abort** — the safety controller stopping an experiment early and undoing the fault because limits were crossed.
+- **Aftershock** — (our term) a second wave of problems that arrives after the broken part has already been fixed.
+- **Backoff** — waiting a bit longer after each failed attempt before trying again, so a struggling service isn't flooded.
 - **Baseline** — measurements of the system when everything is normal; our "healthy" reference point.
 - **Blast radius** — how much of the system a failure can affect. Small blast radius = only one small part gets hurt.
 - **Chaos engineering** — breaking things on purpose, safely, to find weaknesses before real outages do.
@@ -22,5 +26,6 @@
 - **Recovery time** — how long the system takes to get back to normal after the failure is removed.
 - **Resilience** — a system's ability to keep working (maybe degraded) and bounce back when parts fail.
 - **Retry** — automatically trying a failed request again.
+- **Rolling average** — the average of the most recent few readings (here: the last 30 s), used to smooth out noisy single readings.
 - **Timeout** — a maximum wait time; after it, give up instead of hanging forever.
 - **Trace (Jaeger)** — the full journey of one request through all the services it touched.

@@ -59,3 +59,25 @@
 - **Say it like this:** "Every service-to-service call in the config was confirmed by real traffic; the only gaps were databases and the message queue, which tracing can't name — so we need both views. And when we killed a service, Docker did not restart it by itself."
 - **Likely judge question + our answer:** *"The containers have a restart policy — why didn't it restart?"* — "Docker treats `docker kill` as a deliberate manual stop, so the policy doesn't fire. A real crash inside the app would be restarted, but a killed or OOM-stopped box needs a health-based restarter (like Kubernetes liveness probes) — that's a fix we can propose."
 - **Numbers to remember:** 20 nodes, 28 links; astronomy-db hurts 5 services, kafka 4; recommendation RestartCount = 0 after kill.
+
+---
+## [2026-10-10 13:12] Healthy baseline captured + fairer recovery check — Milestone item 3 (Monitoring baseline)
+
+### 🗣️ Explain it to the judges
+- **What we did (plain English):** With 15 fake shoppers using the shop and nothing broken, we took a reading every 5 seconds for 3 minutes. Healthy means: 0% failed requests, about 0.5 seconds average response, about 2.7 requests per second. We also noticed that healthy readings alone jump between 0.3 and 0.9 seconds, so we now judge "recovered" on a 30-second average instead of on single noisy readings.
+- **Why it matters:** Every safety decision is "compared to normal". Without a baseline the referee can't tell broken from busy; with a noisy measure it would report fake slow recoveries.
+- **Analogy:** Taking your resting heart rate before a stress test — and averaging a few beats rather than trusting one.
+- **Say it like this:** "We measured healthy first: zero errors and about half a second per request at 15 shoppers. Our safety stop fires if errors pass 5% or responses double to over one second for 30 seconds."
+- **Likely judge question + our answer:** "Why 15 users, not more?" — "At 50 to 100 users the database ran out of memory and the load generator itself maxed out, so higher numbers would measure our test tool, not the shop. At 5 users each 5-second check saw only about 6 requests — one failure would look like 17% errors."
+- **Numbers to remember:** 0.00% errors · 517 ms avg response · 2.7 req/s · 15 users · abort limits 5% errors / 1,034 ms · healthy readings swing 275–880 ms · at 5 users avg was ~115 ms (4–5× slower at 15 users).
+
+---
+## [2026-10-10 13:16] Experiment 1: crash recommendation — safety stop fired automatically — Milestone items 4 + 5
+
+### 🗣️ Explain it to the judges
+- **What we did (plain English):** Our safety controller crashed the recommendation service (the "you may also like" box) with a 90-second limit, and checked what shoppers felt every 5 seconds. From 15 seconds in, responses were 2–7× slower than normal and up to 20% of requests failed. After 30 seconds of that, the controller stopped the experiment on its own after 41 seconds, restarted the service, and measured 66 seconds until the shop was back to normal.
+- **Why it matters:** It proves both seat belts: our code broke something on purpose AND undid it automatically when shoppers were hurt too much — without a human. It also found a real weakness: a small optional feature can drag down the whole shop because there is no fallback.
+- **Analogy:** A fire drill where the alarm system itself noticed people were getting stuck and opened the doors early.
+- **Say it like this:** "We crashed a small, optional service. We expected nobody to notice — instead one in five requests failed, so our referee stopped the test after 41 seconds by itself and the shop was back to normal 66 seconds later."
+- **Likely judge question + our answer:** "Why did the shop take 66 seconds to recover when the service restarted instantly?" — "The service was ready in under a second, but the frontend only started talking to it again 21 seconds later, then a second wave of slow, failing product pages hit 30–60 seconds after the restart. We haven't confirmed the cause yet; our best guess is that queued requests were all released at once and overloaded the product catalog. That's what we'd check next in the traces."
+- **Numbers to remember:** abort at +41 s (limit 90 s) · abort reason errors 9.1% > 5%, avg 1,745 ms > 1,034 ms · peak errors 20% · peak avg response 3.7 s · recovery 66 s · aftershock up to 50% errors / 9.7 s · 21 s silence before traffic returned.

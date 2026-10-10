@@ -71,12 +71,19 @@ def breached(s, limits):
     return reasons
 
 
-def healthy(s, limits):
-    """'Recovered' = within the tolerance of the baseline (with a small floor so 0% errors isn't impossible)."""
+def healthy(recent, limits):
+    """'Recovered' = the AVERAGE of the last 30 s is within the tolerance of the baseline.
+
+    Why an average: even a perfectly healthy shop swings between ~300 and ~900 ms per 5 s reading
+    (see the baseline), so demanding six good readings in a row would mostly measure noise.
+    Errors get a small floor (1%) so a 0% baseline doesn't make recovery impossible.
+    """
+    if any(s.get("error_rate") is None or s.get("mean_ms") is None for s in recent):
+        return False
     tol = CFG["recovery"]["tolerance"]
-    err_ok = s.get("error_rate") is not None and s["error_rate"] <= max(limits["baseline_error_rate"] * (1 + tol), 0.01)
-    lat_ok = s.get("mean_ms") is not None and s["mean_ms"] <= limits["baseline_mean_ms"] * (1 + tol)
-    return err_ok and lat_ok
+    avg_err = sum(s["error_rate"] for s in recent) / len(recent)
+    avg_ms = sum(s["mean_ms"] for s in recent) / len(recent)
+    return avg_err <= max(limits["baseline_error_rate"] * (1 + tol), 0.01) and avg_ms <= limits["baseline_mean_ms"] * (1 + tol)
 
 
 def fmt(s, limits, streak=None):
@@ -144,20 +151,24 @@ def run(kind, target, duration, **params):
     record["fault_active_s"] = round(restored["at"] - t0)
 
     # ---- Phase 2: fault removed, measure recovery ----
+    # Recovered = the 30 s window that STARTS at time X averages back to baseline; recovery time = X.
     stable_needed = CFG["recovery"]["stable_seconds"]
     give_up = CFG["recovery"]["give_up_after_seconds"]
-    t_restore, first_ok = restored["at"], None
+    per_window = max(1, stable_needed // interval)  # 30 s / 5 s = 6 readings
+    t_restore, recent = restored["at"], []
     while time.time() - t_restore < give_up:
         time.sleep(interval)
         s = read()
-        ok = healthy(s, limits)
         record["timeline"].append({"t": round(time.time() - t0), "phase": "recovery", **s})
-        first_ok = (first_ok or time.time()) if ok else None
-        print(f"{now()}  [recovery +{time.time() - t_restore:4.0f}s]  {fmt(s, limits)}  {'OK' if ok else 'not yet'}")
-        if first_ok and time.time() - first_ok >= stable_needed:
-            record["recovery_time_s"] = round(first_ok - t_restore)
+        recent = (recent + [(time.time(), s)])[-per_window:]
+        ok = len(recent) == per_window and healthy([r[1] for r in recent], limits)
+        print(f"{now()}  [recovery +{time.time() - t_restore:4.0f}s]  {fmt(s, limits)}  "
+              f"{'OK (30 s average back to normal)' if ok else 'not yet'}")
+        if ok:
+            # the stable window began one interval before its first reading
+            record["recovery_time_s"] = max(0, round(recent[0][0] - interval - t_restore))
             print(f"{now()}  RECOVERED: back to baseline {record['recovery_time_s']}s after the fault was removed "
-                  f"(stable for {stable_needed}s)")
+                  f"(averaged over the following {stable_needed}s)")
             break
     else:
         record["recovery_time_s"] = None

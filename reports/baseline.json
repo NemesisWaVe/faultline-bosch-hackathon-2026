@@ -1,0 +1,387 @@
+{
+  "captured_at": "2026-10-10 13:08:37",
+  "duration_seconds": 180,
+  "load_users": 15,
+  "note": "Shopper view = 5 s windows of Locust totals; '/prompt' (chatbot add-on not deployed) and 'TASK' rows (whole browser journeys) excluded.",
+  "shopper_view": {
+    "rps": {
+      "mean": 2.7272,
+      "median": 2.595,
+      "p90_of_samples": 3.59,
+      "max": 5.18
+    },
+    "error_rate": {
+      "mean": 0.0,
+      "median": 0.0,
+      "p90_of_samples": 0.0,
+      "max": 0.0
+    },
+    "mean_ms": {
+      "mean": 519.7222,
+      "median": 517.0,
+      "p90_of_samples": 658,
+      "max": 880
+    }
+  },
+  "per_service": {
+    "ad": {
+      "calls_per_sec": 0.3759,
+      "error_rate": 0.0,
+      "p95_ms": 1.9
+    },
+    "cart": {
+      "calls_per_sec": 2.4311,
+      "error_rate": 0.0,
+      "p95_ms": 8.79
+    },
+    "checkout": {
+      "calls_per_sec": 0.1213,
+      "error_rate": 0.0,
+      "p95_ms": 3500.0
+    },
+    "currency": {
+      "calls_per_sec": 1.3216,
+      "error_rate": 0.0,
+      "p95_ms": 1.9
+    },
+    "email": {
+      "calls_per_sec": 0.1213,
+      "error_rate": 0.0,
+      "p95_ms": 6.0
+    },
+    "flagd": {
+      "calls_per_sec": 12.6768,
+      "error_rate": 0.0,
+      "p95_ms": 1.9456
+    },
+    "frontend": {
+      "calls_per_sec": 19.7275,
+      "error_rate": 0.0,
+      "p95_ms": 657.963
+    },
+    "frontend-proxy": {
+      "calls_per_sec": 18.3756,
+      "error_rate": 0.0,
+      "p95_ms": 566.789
+    },
+    "image-provider": {
+      "calls_per_sec": 3.68,
+      "error_rate": 0.0,
+      "p95_ms": 1.9
+    },
+    "payment": {
+      "calls_per_sec": 0.1213,
+      "error_rate": 0.0,
+      "p95_ms": 1.9
+    },
+    "product-catalog": {
+      "calls_per_sec": 6.687,
+      "error_rate": 0.0,
+      "p95_ms": 681.4765
+    },
+    "quote": {
+      "calls_per_sec": 0.2789,
+      "error_rate": 0.0,
+      "p95_ms": 1.9
+    },
+    "recommendation": {
+      "calls_per_sec": 0.8912,
+      "error_rate": 0.0,
+      "p95_ms": 349.2
+    },
+    "shipping": {
+      "calls_per_sec": 0.388,
+      "error_rate": 0.0,
+      "p95_ms": 24.4
+    },
+    "telemetry-docs": {
+      "calls_per_sec": 0.2183,
+      "error_rate": 0.0,
+      "p95_ms": 1.9
+    }
+  },
+  "containers": {
+    "frontend-proxy": "Up 59 minutes (healthy)",
+    "load-generator": "Up 59 minutes (healthy)",
+    "frontend": "Up 59 minutes (healthy)",
+    "recommendation": "Up 40 minutes (healthy)",
+    "checkout": "Up 59 minutes (healthy)",
+    "accounting": "Up 59 minutes",
+    "product-catalog": "Up 25 minutes (healthy)",
+    "ad": "Up 59 minutes (healthy)",
+    "fraud-detection": "Up 59 minutes",
+    "cart": "Up 59 minutes",
+    "email": "Up 59 minutes (healthy)",
+    "shipping": "Up 59 minutes (healthy)",
+    "payment": "Up 59 minutes (healthy)",
+    "quote": "Up 59 minutes (healthy)",
+    "image-provider": "Up 59 minutes (healthy)",
+    "flagd-ui": "Up 59 minutes (healthy)",
+    "currency": "Up 59 minutes (healthy)",
+    "otel-collector": "Up 59 minutes",
+    "jaeger": "Up About an hour",
+    "valkey-cart": "Up About an hour (healthy)",
+    "grafana": "Up About an hour",
+    "astronomy-db": "Up About an hour (healthy)",
+    "opensearch": "Up About an hour (healthy)",
+    "prometheus": "Up About an hour",
+    "flagd": "Up About an hour",
+    "telemetry-docs": "Up About an hour (healthy)",
+    "kafka": "Up About an hour (healthy)",
+    "opamp-server": "Up About an hour (healthy)"
+  },
+  "samples": [
+    {
+      "users": 15,
+      "rps": 2.0,
+      "error_rate": 0.0,
+      "mean_ms": 662,
+      "t": "13:05:41"
+    },
+    {
+      "users": 15,
+      "rps": 2.39,
+      "error_rate": 0.0,
+      "mean_ms": 435,
+      "t": "13:05:47"
+    },
+    {
+      "users": 15,
+      "rps": 1.0,
+      "error_rate": 0.0,
+      "mean_ms": 624,
+      "t": "13:05:52"
+    },
+    {
+      "users": 15,
+      "rps": 3.2,
+      "error_rate": 0.0,
+      "mean_ms": 486,
+      "t": "13:05:57"
+    },
+    {
+      "users": 15,
+      "rps": 2.6,
+      "error_rate": 0.0,
+      "mean_ms": 531,
+      "t": "13:06:02"
+    },
+    {
+      "users": 15,
+      "rps": 2.2,
+      "error_rate": 0.0,
+      "mean_ms": 530,
+      "t": "13:06:07"
+    },
+    {
+      "users": 15,
+      "rps": 2.6,
+      "error_rate": 0.0,
+      "mean_ms": 658,
+      "t": "13:06:12"
+    },
+    {
+      "users": 15,
+      "rps": 2.0,
+      "error_rate": 0.0,
+      "mean_ms": 455,
+      "t": "13:06:17"
+    },
+    {
+      "users": 15,
+      "rps": 2.2,
+      "error_rate": 0.0,
+      "mean_ms": 771,
+      "t": "13:06:22"
+    },
+    {
+      "users": 15,
+      "rps": 3.0,
+      "error_rate": 0.0,
+      "mean_ms": 328,
+      "t": "13:06:27"
+    },
+    {
+      "users": 15,
+      "rps": 2.4,
+      "error_rate": 0.0,
+      "mean_ms": 648,
+      "t": "13:06:32"
+    },
+    {
+      "users": 15,
+      "rps": 2.39,
+      "error_rate": 0.0,
+      "mean_ms": 395,
+      "t": "13:06:37"
+    },
+    {
+      "users": 15,
+      "rps": 3.59,
+      "error_rate": 0.0,
+      "mean_ms": 533,
+      "t": "13:06:42"
+    },
+    {
+      "users": 15,
+      "rps": 3.59,
+      "error_rate": 0.0,
+      "mean_ms": 275,
+      "t": "13:06:47"
+    },
+    {
+      "users": 15,
+      "rps": 1.79,
+      "error_rate": 0.0,
+      "mean_ms": 880,
+      "t": "13:06:52"
+    },
+    {
+      "users": 15,
+      "rps": 2.6,
+      "error_rate": 0.0,
+      "mean_ms": 342,
+      "t": "13:06:57"
+    },
+    {
+      "users": 15,
+      "rps": 2.59,
+      "error_rate": 0.0,
+      "mean_ms": 824,
+      "t": "13:07:02"
+    },
+    {
+      "users": 15,
+      "rps": 2.6,
+      "error_rate": 0.0,
+      "mean_ms": 304,
+      "t": "13:07:07"
+    },
+    {
+      "users": 15,
+      "rps": 2.39,
+      "error_rate": 0.0,
+      "mean_ms": 510,
+      "t": "13:07:12"
+    },
+    {
+      "users": 15,
+      "rps": 2.98,
+      "error_rate": 0.0,
+      "mean_ms": 524,
+      "t": "13:07:17"
+    },
+    {
+      "users": 15,
+      "rps": 4.79,
+      "error_rate": 0.0,
+      "mean_ms": 461,
+      "t": "13:07:22"
+    },
+    {
+      "users": 15,
+      "rps": 2.39,
+      "error_rate": 0.0,
+      "mean_ms": 575,
+      "t": "13:07:27"
+    },
+    {
+      "users": 15,
+      "rps": 1.59,
+      "error_rate": 0.0,
+      "mean_ms": 503,
+      "t": "13:07:32"
+    },
+    {
+      "users": 15,
+      "rps": 4.79,
+      "error_rate": 0.0,
+      "mean_ms": 495,
+      "t": "13:07:37"
+    },
+    {
+      "users": 15,
+      "rps": 5.18,
+      "error_rate": 0.0,
+      "mean_ms": 387,
+      "t": "13:07:42"
+    },
+    {
+      "users": 15,
+      "rps": 2.58,
+      "error_rate": 0.0,
+      "mean_ms": 541,
+      "t": "13:07:47"
+    },
+    {
+      "users": 15,
+      "rps": 2.39,
+      "error_rate": 0.0,
+      "mean_ms": 418,
+      "t": "13:07:52"
+    },
+    {
+      "users": 15,
+      "rps": 2.19,
+      "error_rate": 0.0,
+      "mean_ms": 575,
+      "t": "13:07:57"
+    },
+    {
+      "users": 15,
+      "rps": 2.2,
+      "error_rate": 0.0,
+      "mean_ms": 473,
+      "t": "13:08:02"
+    },
+    {
+      "users": 15,
+      "rps": 3.2,
+      "error_rate": 0.0,
+      "mean_ms": 496,
+      "t": "13:08:07"
+    },
+    {
+      "users": 15,
+      "rps": 1.4,
+      "error_rate": 0.0,
+      "mean_ms": 600,
+      "t": "13:08:12"
+    },
+    {
+      "users": 15,
+      "rps": 3.2,
+      "error_rate": 0.0,
+      "mean_ms": 549,
+      "t": "13:08:17"
+    },
+    {
+      "users": 15,
+      "rps": 3.19,
+      "error_rate": 0.0,
+      "mean_ms": 413,
+      "t": "13:08:22"
+    },
+    {
+      "users": 15,
+      "rps": 2.8,
+      "error_rate": 0.0,
+      "mean_ms": 616,
+      "t": "13:08:27"
+    },
+    {
+      "users": 15,
+      "rps": 2.79,
+      "error_rate": 0.0,
+      "mean_ms": 356,
+      "t": "13:08:32"
+    },
+    {
+      "users": 15,
+      "rps": 3.39,
+      "error_rate": 0.0,
+      "mean_ms": 537,
+      "t": "13:08:37"
+    }
+  ]
+}

@@ -18,10 +18,24 @@ foreach ($line in $containers) {
     }
 }
 
-Write-Host "3) Removing leftover network delay rules (harmless if none exist)..."
-foreach ($line in $containers) {
-    $name = ($line -split "\|")[0]
-    docker run --rm --net "container:$name" --cap-add NET_ADMIN $tcImage tc qdisc del dev eth0 root 2>$null | Out-Null
+# Network faults can only ever have been applied to ALLOWLISTED targets, so only clean those —
+# never run anything inside monitoring/denylisted containers. Read the allowlist from config/targets.yaml
+# (simple line parsing: PowerShell 5.1 has no YAML reader).
+$allow = @(); $inAllow = $false
+foreach ($l in Get-Content (Join-Path $PSScriptRoot "..\config\targets.yaml")) {
+    if ($l -match '^allowlist:') { $inAllow = $true; continue }
+    if ($l -match '^\S') { $inAllow = $false }
+    if ($inAllow -and $l -match '^\s*-\s*([\w-]+)') { $allow += $Matches[1] }
+}
+# If the tc helper image was never downloaded, no network fault has ever run on this laptop -> nothing to clean.
+docker image inspect $tcImage 2>$null | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "3) No network faults have ever been run here (helper image absent) - skipping network cleanup."
+} else {
+    Write-Host "3) Removing leftover network delay rules on $($allow.Count) allowlisted targets (harmless if none exist)..."
+    foreach ($name in $allow) {
+        docker run --rm --net "container:$name" --cap-add NET_ADMIN $tcImage tc qdisc del dev eth0 root 2>$null | Out-Null
+    }
 }
 
 Write-Host "4) Final state:"

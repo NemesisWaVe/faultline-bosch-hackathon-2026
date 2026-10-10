@@ -32,8 +32,17 @@ PUMBA_IMAGE = "gaiaadm/pumba:latest"                                     # TODO 
 TC_IMAGE = "ghcr.io/alexei-led/pumba-alpine-nettools:latest"             # TODO verify before first use
 
 
+DOCKER_TIMEOUT = 60  # seconds; a frozen Docker engine must never freeze the safety referee with it
+
+
 def docker(*args, check=True):
-    return subprocess.run(["docker", *args], capture_output=True, text=True, check=check).stdout.strip()
+    """Run one docker command. If Docker doesn't answer within DOCKER_TIMEOUT, fail loudly instead of hanging."""
+    try:
+        return subprocess.run(["docker", *args], capture_output=True, text=True, check=check,
+                              timeout=DOCKER_TIMEOUT).stdout.strip()
+    except subprocess.TimeoutExpired:
+        raise RuntimeError(f"Docker did not answer within {DOCKER_TIMEOUT}s (docker {' '.join(args[:2])}). "
+                           "Restart Docker Desktop, then run chaos\stop_all.ps1") from None
 
 
 def check_target(name):
@@ -47,8 +56,11 @@ def check_target(name):
 
 def state(name):
     """Running / paused / exited, plus health if the container has a health check."""
-    out = docker("inspect", "-f", "{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{end}}",
-                 name, check=False)
+    try:
+        out = docker("inspect", "-f", "{{.State.Status}} {{if .State.Health}}{{.State.Health.Status}}{{end}}",
+                     name, check=False)
+    except RuntimeError:
+        return "unknown (Docker not answering)"
     return out or "missing"
 
 

@@ -1,0 +1,41 @@
+# Which containers the chaos controller may break.
+# Plain English: a strict guest list. Anything NOT on the allowlist is never touched, and the
+# denylist is checked again as a second lock. Names verified from `docker compose config` (11:59).
+compose_project: opentelemetry-demo   # we only ever touch containers labelled with this project
+
+allowlist:
+  # leaf services (smallest blast radius — start here)
+  - ad
+  - recommendation
+  - email
+  - currency
+  - quote
+  - image-provider
+  # central services (bigger blast radius)
+  - product-catalog
+  - cart
+  - checkout
+  - payment
+  - shipping
+  - frontend
+  # async consumers
+  - accounting
+  - fraud-detection
+  # data stores / queue (highest risk — only after the safety controller is proven)
+  - valkey-cart
+  - astronomy-db
+  - kafka
+
+denylist:
+  # Breaking these would blind or disable our own safety controller, or stop the test traffic.
+  - otel-collector
+  - prometheus
+  - grafana
+  - jaeger
+  - opensearch
+  - load-generator
+  - flagd
+  - flagd-ui
+  - frontend-proxy
+  - opamp-server
+  - telemetry-docs

@@ -55,6 +55,20 @@ Then **append the same block to `docs/EXPLAINER.md`** (create the file and `docs
 or rewrite old entries; only append. If a later task changes how something works, add a new entry that says
 "This replaces the earlier explanation of X because Y."
 
+### 0.2b Hands-on rule — "Your turn" steps
+We are moving fast with heavy AI help, so we must still touch the system ourselves to really understand it.
+At every natural checkpoint (app started, experiment ready, new script working), add a short section:
+
+```markdown
+### 🧑‍💻 Your turn (2–5 min)
+1. `<command>` — what it does in one line. **Look for:** what a good result looks like.
+2. ...
+```
+- Prefer small, safe, observable things: launching the app, opening a dashboard, running a status command,
+  triggering the first manual failure ourselves, reading a log line.
+- Always list the key commands you ran (or would run) so we can repeat them without you during the demo or interview.
+- Never put destructive commands in "Your turn" without a bold warning.
+
 ### 0.3 Keep a glossary
 Maintain `docs/GLOSSARY.md`: every time you introduce a new technical term, add a one-line plain-English definition
 (alphabetical). Seed it with the glossary in section 10 of this file.

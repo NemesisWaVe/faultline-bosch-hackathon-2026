@@ -29,3 +29,23 @@
 - **Say it like this:** "Read it left to right like a request travelling through the shop; the red numbers tell you how much breaks if that box goes down."
 - **Likely judge question + our answer:** *"Why is accounting on the right of Kafka if it depends on Kafka?"* â€” "Arrows show data flow. Checkout drops orders into Kafka, and accounting reads them later; for the impact count we still treat accounting as depending on Kafka."
 - **Numbers to remember:** we hide 3 "start-up order" links (e.g. frontend â†’ quote) because they only control boot order, not real calls.
+
+---
+## [2026-10-10 12:01] Fault injector + emergency stop — Milestone 1 items 4 & 5 (Injection, Safety)
+
+- **What we did (plain English):** We wrote the tool that breaks things: it can crash a service, freeze it, or slow/drop its network traffic. Every "break" has a matching "undo", runs for at most 2 minutes, and is undone automatically on timeout or Ctrl+C. We also wrote a one-click emergency script that un-breaks everything.
+- **Why it matters:** Bosch's brief asks for *controlled* failures with safety limits. A strict guest list (allowlist) plus a do-not-touch list (denylist) plus a check that the container really belongs to our shop means we can never hit our monitoring tools, other projects, or anything outside the sandbox.
+- **Analogy:** Like a circuit breaker test in a building: you only flip switches on the labelled test panel, there's a timer that flips them back, and a master reset on the wall.
+- **Say it like this:** "Every fault we inject has an undo button, a 2-minute timer, and a guest list — we tested that it refuses our monitoring tools and anything outside our project."
+- **Likely judge question + our answer:** *"How do you make sure a network fault doesn't hit the venue Wi-Fi?"* — "We use Pumba, which applies the delay only inside the target container's own network namespace (its private network card), never the laptop's or the venue's."
+- **Numbers to remember:** 17 allowed targets, 11 never-touch services; tested refusals: prometheus (denylist), unknown name, container not in our project.
+
+---
+## [2026-10-10 12:10] App running + choosing our "scoreboards" — Milestone 1 items 1 & 3 (Setup, Baseline)
+
+- **What we did (plain English):** We got all 28 parts of the shop running and found two places to read health numbers: the fake shoppers' own live scoreboard (Locust, updates every ~2 s) and the monitoring database (Prometheus, per-service detail but only updated about once a minute).
+- **Why it matters:** A safety referee that checks every 5 seconds needs numbers that change every few seconds; a once-a-minute number would let a full minute of damage happen before anyone noticed.
+- **Analogy:** A car's speedometer (live, for driving safely) versus the trip computer summary (detailed, for reviewing the journey afterwards).
+- **Say it like this:** "We measured how fresh each data source is: Prometheus refreshes every ~60 s, so our kill switch watches the shoppers' live experience instead, and we use Prometheus to explain *which* service caused it."
+- **Likely judge question + our answer:** *"Why not just use Prometheus for everything?"* — "We checked the sample timestamps: about 55–60 s apart. A 30-second abort rule can't work on data that arrives once a minute."
+- **Numbers to remember:** 28 containers; Prometheus refresh ≈ 60 s; Locust refresh ≈ 2 s; we ignore `/prompt` (chatbot add-on we didn't deploy).
